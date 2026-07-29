@@ -2,9 +2,29 @@ const { Pool } = require('pg');
 const env = require('../config/env');
 const logger = require('../config/logger');
 
+/**
+ * SSL config for the DB connection.
+ *
+ * Render's own managed Postgres uses a self-signed cert with no CA to
+ * verify against, so `rejectUnauthorized: false` is the normal way to
+ * connect to it. Other providers — Aiven, Supabase, Neon, etc. — issue
+ * a real CA certificate and expect the client to verify against it;
+ * some of them reject connections that skip verification entirely.
+ *
+ * If DATABASE_CA_CERT is set (paste the full contents of the provider's
+ * downloaded ca.pem into this env var), we verify against it properly.
+ * Otherwise we fall back to the permissive mode for providers that
+ * don't require/offer a CA cert.
+ */
+const sslConfig = !env.databaseSsl
+  ? false
+  : process.env.DATABASE_CA_CERT
+    ? { rejectUnauthorized: true, ca: process.env.DATABASE_CA_CERT }
+    : { rejectUnauthorized: false };
+
 const pool = new Pool({
   connectionString: env.databaseUrl,
-  ssl: env.databaseSsl ? { rejectUnauthorized: false } : false,
+  ssl: sslConfig,
   max: parseInt(process.env.DB_POOL_MAX || '10', 10),
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
