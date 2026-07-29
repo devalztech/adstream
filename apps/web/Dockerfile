@@ -33,8 +33,12 @@ COPY --from=builder --chown=adstream:adstream /app/.next/static ./.next/static
 
 USER adstream
 
+# Documentation only — does not bind anything. Render/Koyeb inject the
+# actual PORT to listen on as a runtime env var; Next.js standalone's
+# server.js reads process.env.PORT at startup. Do NOT hardcode ENV PORT
+# here — that would override whatever port the platform actually routes
+# traffic to, causing 502s even though the container is healthy.
 EXPOSE 3000
-ENV PORT=3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3000) + '/', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"
