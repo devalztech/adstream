@@ -1,0 +1,3 @@
+This file exists only so the public/ directory is preserved by git and Docker's build context.
+apps/web/Dockerfile has "COPY --from=builder /app/public ./public", which fails if this directory is missing or empty.
+Safe to delete this file once real static assets (favicon, images, etc.) are added here.
