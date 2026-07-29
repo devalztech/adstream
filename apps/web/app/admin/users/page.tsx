@@ -71,7 +71,9 @@ export default function AdminUsersPage() {
             title={`Suspend ${u.full_name}?`}
             description="They will be unable to log in until reactivated."
             variant="destructive"
-            onConfirm={() => suspendMutation.mutateAsync(u.id)}
+            onConfirm={async () => {
+              await suspendMutation.mutateAsync(u.id);
+            }}
           />
         ) : (
           <Button variant="outline" size="sm" onClick={() => reactivateMutation.mutate(u.id)}>

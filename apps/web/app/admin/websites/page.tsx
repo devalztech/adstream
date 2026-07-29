@@ -59,7 +59,9 @@ export default function AdminWebsitesPage() {
             }
             title="Approve this website?"
             description={`"${w.name}" will be able to serve ads once approved.`}
-            onConfirm={() => approveMutation.mutateAsync(w.id)}
+            onConfirm={async () => {
+              await approveMutation.mutateAsync(w.id);
+            }}
           />
           <RejectDialog
             trigger={
@@ -69,7 +71,9 @@ export default function AdminWebsitesPage() {
             }
             title="Reject this website?"
             description={`Explain why "${w.name}" is being rejected — the publisher will see this.`}
-            onConfirm={(reason) => rejectMutation.mutateAsync({ id: w.id, reason })}
+            onConfirm={async (reason) => {
+              await rejectMutation.mutateAsync({ id: w.id, reason });
+            }}
           />
         </div>
       ),

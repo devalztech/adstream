@@ -65,7 +65,9 @@ export default function AdminWithdrawalsPage() {
           trigger={<Button size="sm">Process payout</Button>}
           title="Process this withdrawal?"
           description={`This will initiate a real ${w.provider} transfer of ${formatMoney(w.amount, w.currency)}. This cannot be undone.`}
-          onConfirm={() => processMutation.mutateAsync(w.id)}
+          onConfirm={async () => {
+            await processMutation.mutateAsync(w.id);
+          }}
         />
       ),
     },

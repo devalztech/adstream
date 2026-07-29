@@ -90,7 +90,9 @@ export default function CampaignDetailPage() {
                 }
                 title="Pause this campaign?"
                 description="Ad serving will stop immediately. You can resume it at any time."
-                onConfirm={() => runAction.mutateAsync('pause')}
+                onConfirm={async () => {
+                  await runAction.mutateAsync('pause');
+                }}
               />
             )}
             {campaign.status === 'paused' && (
@@ -117,7 +119,9 @@ export default function CampaignDetailPage() {
                 }
                 title="Archive this campaign?"
                 description="Archived campaigns are hidden from the active list but remain in your history."
-                onConfirm={() => runAction.mutateAsync('archive')}
+                onConfirm={async () => {
+                  await runAction.mutateAsync('archive');
+                }}
               />
             )}
           </div>

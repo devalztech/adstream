@@ -61,7 +61,9 @@ export default function AdminCampaignsPage() {
             }
             title="Approve this campaign?"
             description={`"${c.name}" will go live and start serving ads immediately.`}
-            onConfirm={() => approveMutation.mutateAsync(c.id)}
+            onConfirm={async () => {
+              await approveMutation.mutateAsync(c.id);
+            }}
           />
           <RejectDialog
             trigger={
@@ -71,7 +73,9 @@ export default function AdminCampaignsPage() {
             }
             title="Reject this campaign?"
             description={`Explain why "${c.name}" is being rejected — the advertiser will see this.`}
-            onConfirm={(reason) => rejectMutation.mutateAsync({ id: c.id, reason })}
+            onConfirm={async (reason) => {
+              await rejectMutation.mutateAsync({ id: c.id, reason });
+            }}
           />
         </div>
       ),
