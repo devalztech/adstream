@@ -2,93 +2,55 @@
 
 > Connect Advertisers. Empower Publishers.
 
-A production-shaped advertisement marketplace: advertisers create and
-fund campaigns, publishers register websites and earn from ad
-placements, and an admin panel moderates both sides. Built with
-Node.js, Express, and PostgreSQL — no ORM, no heavyweight framework —
-deployable to Render or Koyeb from the same Docker image.
+A full-stack advertising marketplace: advertisers create and fund campaigns, publishers register websites and earn from ad placements, and an admin panel moderates both sides. This is a monorepo containing both halves.
 
-## What's here
+```
+adstream/
+├── apps/
+│   ├── api/     Node.js + Express + PostgreSQL backend — REST API, ad-serving engine, payments
+│   └── web/     Next.js 14 + TypeScript frontend — marketing site + advertiser/publisher/admin dashboards
+├── package.json  npm workspaces root
+└── README.md     you are here
+```
 
-Every module from the original architecture plan is implemented:
+Each app has its own detailed README:
 
-- **Auth & authorization** — registration, login, rotating refresh
-  tokens, email verification, password reset, account lockout,
-  role-based access control (advertiser / publisher / admin, strictly
-  separated)
-- **Wallets** — a ledger-safe balance system (row-locked, append-only
-  transaction log) that every money-moving feature routes through
-- **Payments** — Paystack and Flutterwave, behind one provider
-  abstraction; deposits, withdrawals, and signed webhooks
-- **Campaigns** — full CRUD, budgets, targeting, creatives, lifecycle
-  (draft → pending approval → active/rejected, pause/resume/archive/duplicate)
-- **Publisher websites & ad units** — domain registration with live
-  ownership verification, per-format ad placements, generated embed codes
-- **Ad-serving engine** — a real matching algorithm (targeting, budget,
-  format compatibility), a lightweight async embed script, impression/
-  click/conversion tracking, basic fraud flagging
-- **Analytics** — CTR/CPM/CPC/CPA, daily breakdowns, top campaigns/sites,
-  computed on demand from the tracking data
-- **Notifications** — in-app + email (any SMTP provider), triggered
-  from auth, payments, and admin actions
-- **Admin panel** — campaign/website moderation, withdrawal processing,
-  user management, platform overview, fully audited
-- **Tests** — unit tests for validation/crypto logic, integration tests
-  covering auth, the wallet ledger under concurrency, campaign
-  ownership isolation, and the ad-serving flow end to end
+- [`apps/api/README.md`](apps/api/README.md) — backend setup, API reference, deployment
+- [`apps/web/README.md`](apps/web/README.md) — frontend setup, environment variables, deployment
+- [`apps/web/INTEGRATION_MAP.md`](apps/web/INTEGRATION_MAP.md) — the exact API contract the frontend was built against, including known gaps between the original design spec and what the backend actually supports
 
-## Documentation
-
-| Doc | Covers |
-|---|---|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Module structure, the wallet ledger, ad-serving performance, payment abstraction |
-| [`docs/API.md`](docs/API.md) | Every endpoint, by module |
-| [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md) | Every environment variable |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Render and Koyeb, step by step |
-| [`docs/DEVELOPER_GUIDE.md`](docs/DEVELOPER_GUIDE.md) | Conventions, how to add a module |
-| [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | PR checklist, review expectations |
-| [`tests/README.md`](tests/README.md) | Running the test suite |
-
-## Quick start
+## Quick start (both apps locally)
 
 ```bash
-npm install
-cp .env.example .env   # set DATABASE_URL, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET at minimum
+npm install   # installs both workspaces from the root
+
+# Terminal 1 — backend
+cp apps/api/.env.example apps/api/.env.local
+# edit apps/api/.env.local: DATABASE_URL, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET
 npm run migrate
-npm run dev
+npm run dev:api          # http://localhost:4000
+
+# Terminal 2 — frontend
+cp apps/web/.env.example apps/web/.env.local
+# NEXT_PUBLIC_API_URL=http://localhost:4000 (the default already matches)
+npm run dev:web           # http://localhost:3000
 ```
 
-The API starts on `http://localhost:4000`. Check `GET /health`.
+## Why one repo, two apps
 
-Generate JWT secrets with `openssl rand -hex 64`. Full variable
-reference in `docs/ENVIRONMENT.md`.
-
-## Project structure
-
-```
-src/
-├── config/          env loading, logger
-├── db/               connection pool, migrations (000-014), migration runner
-├── middleware/        auth, RBAC, validation, rate limiting, error handling
-├── modules/            one folder per feature — routes → controller → service → schema
-│   ├── auth/ users/ wallets/ payments/
-│   ├── campaigns/ publisher-sites/ ad-serving/ analytics/
-│   ├── notifications/ admin/
-├── public/embed.js     the publisher-facing ad-serving script
-├── utils/               ApiError, cache, audit log, token/password helpers
-├── app.js                Express app assembly
-└── server.js              entry point, graceful shutdown
-tests/
-├── unit/                  no database required
-└── integration/            full request-flow tests against a real Postgres instance
-docs/                        see table above
-```
-
-See `docs/ARCHITECTURE.md` for why it's organized this way.
+The backend and frontend are deployed as **separate services** — this monorepo is for keeping them versioned and reviewed together, not for running them as one process. `apps/web` talks to `apps/api` over HTTP via `NEXT_PUBLIC_API_URL`, exactly as it would if they lived in separate repos.
 
 ## Deployment
 
-`render.yaml` and `Dockerfile` support both Render and Koyeb from the
-same source — see `docs/DEPLOYMENT.md` for the full walkthrough,
-including webhook registration and provisioning the first admin
-account (admin signup is intentionally not self-service).
+Both apps are container-first (each has its own `Dockerfile` and `render.yaml`) and deploy as two independent Render or Koyeb services from this one repo:
+
+1. **Backend** (`apps/api`): point a Render/Koyeb service at this repo with the Docker build context set to `apps/api`. See `apps/api/docs/DEPLOYMENT.md`.
+2. **Frontend** (`apps/web`): a second service, build context `apps/web`, with `NEXT_PUBLIC_API_URL` set to the backend's deployed URL at **build** time.
+3. Once the frontend has a real URL, set the backend's `CORS_ORIGIN` to that exact origin — required for the httpOnly refresh-token cookie to work cross-origin. Details in `apps/web/INTEGRATION_MAP.md`.
+
+## Development order this was built in
+
+1. Backend, phase by phase, following its own 13-phase build plan (architecture → auth → wallets → campaigns → publisher sites → payments → ad-serving → analytics → notifications → admin → optimization → testing → documentation).
+2. Frontend, starting from a source-verified integration map of the finished backend (not assumptions), then foundation → design system → marketing site → auth → advertiser dashboard → publisher dashboard → admin dashboard.
+
+Every gap between what a design spec assumed and what the backend actually exposes is documented rather than papered over with fake data — see the "Gaps" sections in `apps/web/INTEGRATION_MAP.md`.

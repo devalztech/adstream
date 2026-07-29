@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * AdStream design tokens.
+ * Primary = Royal Purple, Secondary = Crystal Blue, per the brand spec.
+ * Values are HSL triples (no `hsl()` wrapper) so Tailwind can compose
+ * them with opacity modifiers, e.g. bg-primary/10.
+ */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 12%;
+
+    /* Royal Purple */
+    --primary: 262 83% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Crystal Blue */
+    --secondary: 199 89% 48%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 10% 12%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 240 10% 12%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 262 83% 48%;
+
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 240 10% 6%;
+    --foreground: 0 0% 96%;
+
+    --card: 240 8% 9%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 240 8% 9%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 262 83% 62%;
+    --primary-foreground: 240 10% 6%;
+
+    --secondary: 199 89% 58%;
+    --secondary-foreground: 240 10% 6%;
+
+    --muted: 240 6% 15%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 240 6% 15%;
+    --accent-foreground: 0 0% 96%;
+
+    --destructive: 0 63% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 60% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 85% 55%;
+    --warning-foreground: 240 10% 6%;
+
+    --border: 240 6% 18%;
+    --input: 240 6% 18%;
+    --ring: 262 83% 62%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+}

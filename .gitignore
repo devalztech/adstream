@@ -1,11 +1,6 @@
+# npm workspaces hoist shared deps to the root node_modules
 node_modules/
 .env
 .env.local
 *.log
-npm-debug.log*
 .DS_Store
-coverage/
-dist/
-build/
-.vscode/
-.idea/
